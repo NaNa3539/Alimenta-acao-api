@@ -7,7 +7,9 @@ const db = new sqlite3.Database(dbPath, (err) => {
   if (err) {
     console.error('Erro ao conectar ao banco:', err.message);
   } else {
-    console.log('Banco SQLite conectado com sucesso.');
+    if (process.env.NODE_ENV !== 'test') {
+  console.log('Banco SQLite conectado com sucesso.');
+}
   }
 });
 

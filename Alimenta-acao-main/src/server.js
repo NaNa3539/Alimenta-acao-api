@@ -1,5 +1,9 @@
 const express = require('express');
-const db = require('./database/db');
+let db;
+
+if (process.env.NODE_ENV !== 'test') {
+  db = require('./database/db');
+}
 const fs = require('fs');
 const path = require('path');
 
@@ -29,45 +33,30 @@ app.get('/api/alimentos', (req, res) => {
   });
 });
 
-app.post('/api/lancheira', (req, res) => {
+app.post('/api/lancheiras', (req, res) => {
   const { itens } = req.body;
 
   if (!itens || itens.length === 0) {
     return res.status(400).json({ error: 'Nenhum item enviado' });
   }
 
-  const dataCriacao = new Date().toISOString();
+  const novaLancheira = {
+    id: Date.now(),
+    itens,
+    dataCriacao: new Date().toISOString()
+  };
 
-  db.run(
-    `INSERT INTO lancheiras (data_criacao) VALUES (?)`,
-    [dataCriacao],
-    function (err) {
-      if (err) {
-        console.error('Erro ao criar lancheira:', err.message);
-        return res.status(500).json({ error: 'Erro ao criar lancheira' });
-      }
+  res.status(201).json({
+    mensagem: 'Lancheira salva com sucesso!',
+    lancheira: novaLancheira
+  });
+ });
 
-      const lancheiraId = this.lastID;
+if (require.main === module) {
 
-      const stmt = db.prepare(`
-        INSERT INTO lancheira_itens (lancheira_id, alimento_id, quantidade)
-        VALUES (?, ?, ?)
-      `);
+  app.listen(port, () => {
+    console.log(`Servidor rodando em http://localhost:${port}`);
+  });
+}
 
-      itens.forEach((item) => {
-        stmt.run(lancheiraId, item.id, item.quantidade || 1);
-      });
-
-      stmt.finalize();
-
-      res.status(201).json({
-        message: 'Lancheira salva com sucesso',
-        lancheiraId: lancheiraId
-      });
-    }
-  );
-});
-
-app.listen(port, () => {
-  console.log(`Servidor rodando em http://localhost:${port}`);
-});
+module.exports = app;
