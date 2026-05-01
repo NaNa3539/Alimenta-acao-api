@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lancheira Inteligente - Energia para Estudar</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="stylesheet" href="public/style.css">
+</head>
+<body>
+
+  <div vw class="enabled">
+    <div vw-access-button class="active"></div>
+    <div vw-plugin-wrapper>
+      <div class="vw-plugin-top-wrapper"></div>
+    </div>
+  </div>
+  <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
+  <script>
+    new window.VLibras.Widget('https://vlibras.gov.br/app');
+  </script>
+
+  <main class="conteudo">
+    <header class="cabecalho">
+        <img class="logotipo" src="public/images/logotipo.png" alt="Alimenta+ação - Logotipo">
+        <h1>Lanches Saudáveis, Energia para estudar!</h1>
+    </header>
+
+    <section id="landing-section">
+        <section id="info-section" class="container_info"> 
+            <div class="conteudo_info texto">
+                <p class="texto_conteudo"> 
+                    É um banco de orientações alimentares desenvolvido para apoiar famílias 
+                    na escolha de Lanches Saudáveis em diferentes contextos do dia a dia, como contraturnos 
+                    escolares, passeios e momentos de lazer, garantindo sempre o melhor para nossos futuros adultos.
+                </p>
+            </div>
+            <div class="conteudo_info imagem">
+                <img class="conteudo_imagem"  src="public/images/teste.png" alt="Princípios de alimentação saudável">
+            </div>
+        </section>
+        
+        <div class="botoes-acao">
+            <button id="btn-iniciar" class="btn-iniciar" onclick="iniciarMontagem()">
+                <i class="fas fa-rocket"></i> INICIAR MONTAGEM DA LANCHEIRA
+            </button>
+        </div>
+    </section>
+
+    <div id="main-content" class="box-container hidden"> 
+        
+        <section class="box box-alimentos">
+            <h2>🍴 Escolha os Alimentos</h2>
+            <p class="aviso">
+                Clique nas categorias para filtrar.
+            </p>
+
+            <div id="categorias-container" class="categorias-container">
+                </div>
+            
+            <div id="alimentos-lista" class="alimentos-lista">
+                </div>
+            
+        </section>
+
+        <section class="box box-lancheira">
+            <h2>🎒 Sua Lancheira Inteligente</h2>
+            <div class="aviso-kcal">
+                ⚠️ **Limite:** até **400 kcal**
+            </div>
+
+            <div id="lancheira-container" class="lancheira-container">
+                <ul id="lancheira"></ul>
+            </div>
+            
+            <p id="total" class="total"></p>
+            
+            <div class="botoes-acao">
+                <button class="btn-limpar" onclick="limparLancheira()">Limpar Tudo</button>
+            </div>
+
+            <p id="mensagem" class="mensagem"></p>
+
+            <button id="voltarpagina" class="btn-voltar">Voltar 🏠</button>
+
+            
+        </section>
+        
+    </div>
+  </main>
+
+  
+
+    <script>
+        const voltarpagina = document.getElementById('voltarpagina');
+
+        voltarpagina.addEventListener('click', () => {
+            window.location.reload();
+        });
+    </script>
+  
+  <script type="module" src="./src/script.js"></script>
+</body>
+</html>
