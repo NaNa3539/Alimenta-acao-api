@@ -3,8 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lancheira Inteligente - Energia para Estudar</title>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <title>Alimenta+Ação — Lancheira Inteligente</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <link rel="stylesheet" href="public/style.css">
 </head>
 <body>
@@ -16,89 +19,185 @@
     </div>
   </div>
   <script src="https://vlibras.gov.br/app/vlibras-plugin.js"></script>
-  <script>
-    new window.VLibras.Widget('https://vlibras.gov.br/app');
-  </script>
+  <script>new window.VLibras.Widget('https://vlibras.gov.br/app');</script>
 
-  <main class="conteudo">
-    <header class="cabecalho">
-        <img class="logotipo" src="public/images/logotipo.png" alt="Alimenta+ação - Logotipo">
-        <h1>Lanches Saudáveis, Energia para estudar!</h1>
-    </header>
+  <div class="bg-shapes" aria-hidden="true">
+    <span class="shape shape-1"></span>
+    <span class="shape shape-2"></span>
+    <span class="shape shape-3"></span>
+  </div>
 
-    <section id="landing-section">
-        <section id="info-section" class="container_info"> 
-            <div class="conteudo_info texto">
-                <p class="texto_conteudo"> 
-                    É um banco de orientações alimentares desenvolvido para apoiar famílias 
-                    na escolha de Lanches Saudáveis em diferentes contextos do dia a dia, como contraturnos 
-                    escolares, passeios e momentos de lazer, garantindo sempre o melhor para nossos futuros adultos.
-                </p>
-            </div>
-            <div class="conteudo_info imagem">
-                <img class="conteudo_imagem"  src="public/images/teste.png" alt="Princípios de alimentação saudável">
-            </div>
-        </section>
-        
-        <div class="botoes-acao">
-            <button id="btn-iniciar" class="btn-iniciar" onclick="iniciarMontagem()">
-                <i class="fas fa-rocket"></i> INICIAR MONTAGEM DA LANCHEIRA
+  <nav class="navbar">
+    <a href="#" class="brand">
+      <img src="public/images/logotipo.png" alt="Alimenta+Ação">
+      <span>Alimenta<strong>+Ação</strong></span>
+    </a>
+    <div class="nav-links">
+      <a href="#sobre">Sobre</a>
+      <a href="#como">Como funciona</a>
+      <a href="#" class="nav-cta" id="nav-cta">
+        <i class="fa-solid fa-bag-shopping"></i> Montar lancheira
+      </a>
+    </div>
+  </nav>
+
+  <main>
+    <section id="hero" class="hero">
+      <div class="hero-grid">
+        <div class="hero-text">
+          <span class="tag">
+            <i class="fa-solid fa-bolt"></i>
+            Educação alimentar para o dia a dia
+          </span>
+          <h1>Lanches que dão <em>energia</em> pra aprender, brincar e crescer.</h1>
+          <p class="hero-sub">Monte uma lancheira equilibrada de até 400 kcal usando alimentos reais. Frutas, proteínas, cereais e bebidas — a gente cuida do equilíbrio, você escolhe o sabor.</p>
+
+          <div class="hero-actions">
+            <button class="btn-primary" id="btn-iniciar">
+              Começar montagem
+              <i class="fa-solid fa-arrow-right"></i>
             </button>
+            <a href="#sobre" class="btn-ghost">Como funciona</a>
+          </div>
+
+          <div class="hero-stats">
+            <div><strong>90+</strong><span>alimentos cadastrados</span></div>
+            <div><strong>6</strong><span>categorias balanceadas</span></div>
+            <div><strong>400</strong><span>kcal por lancheira</span></div>
+          </div>
         </div>
+
+        <div class="hero-visual" aria-hidden="true">
+          <div class="hero-orb"></div>
+          <div class="hero-card card-1"><i class="fa-solid fa-apple-whole"></i><span>Frutas</span></div>
+          <div class="hero-card card-2"><i class="fa-solid fa-cheese"></i><span>Laticínios</span></div>
+          <div class="hero-card card-3"><i class="fa-solid fa-egg"></i><span>Proteínas</span></div>
+          <div class="hero-card card-4"><i class="fa-solid fa-bread-slice"></i><span>Cereais</span></div>
+        </div>
+      </div>
     </section>
 
-    <div id="main-content" class="box-container hidden"> 
-        
-        <section class="box box-alimentos">
-            <h2>🍴 Escolha os Alimentos</h2>
-            <p class="aviso">
-                Clique nas categorias para filtrar.
-            </p>
+    <section id="sobre" class="info">
+      <div class="info-card">
+        <i class="fa-solid fa-seedling"></i>
+        <h3>Comida de verdade</h3>
+        <p>Itens reais baseados em referências nutricionais. Sem fórmulas mágicas, só comida boa.</p>
+      </div>
+      <div class="info-card">
+        <i class="fa-solid fa-scale-balanced"></i>
+        <h3>Equilíbrio na hora</h3>
+        <p>O contador mostra em tempo real quanto falta — ou sobra — para você acertar a porção.</p>
+      </div>
+      <div class="info-card">
+        <i class="fa-solid fa-heart"></i>
+        <h3>Feito pra família</h3>
+        <p>Pensado para adolescentes em contraturno escolar, passeios e momentos de lazer.</p>
+      </div>
+    </section>
 
-            <div id="categorias-container" class="categorias-container">
-                </div>
-            
-            <div id="alimentos-lista" class="alimentos-lista">
-                </div>
-            
-        </section>
+    <section id="como" class="steps">
+      <div class="steps-header">
+        <span class="kicker">Como funciona</span>
+        <h2>Três passos pra uma lancheira melhor.</h2>
+      </div>
+      <ol class="steps-list">
+        <li>
+          <span class="step-num">01</span>
+          <h4>Escolha a categoria</h4>
+          <p>Filtre por frutas, proteínas, cereais e mais. Cada categoria tem opções práticas.</p>
+        </li>
+        <li>
+          <span class="step-num">02</span>
+          <h4>Monte sua lancheira</h4>
+          <p>Toque nos alimentos para adicionar. A lancheira soma calorias automaticamente.</p>
+        </li>
+        <li>
+          <span class="step-num">03</span>
+          <h4>Acerte o alvo</h4>
+          <p>Fique entre 300 e 400 kcal e receba uma confirmação verde. Simples assim.</p>
+        </li>
+      </ol>
+    </section>
 
-        <section class="box box-lancheira">
-            <h2>🎒 Sua Lancheira Inteligente</h2>
-            <div class="aviso-kcal">
-                ⚠️ **Limite:** até **400 kcal**
+    <section id="app" class="app hidden">
+      <div class="app-header">
+        <span class="kicker">Montagem</span>
+        <h2>Monte sua lancheira</h2>
+        <p>Toque nos alimentos para adicionar. Acompanhe o progresso no painel da direita.</p>
+      </div>
+
+      <div class="app-grid">
+        <article class="panel panel-foods">
+          <header class="panel-header">
+            <h3><i class="fa-solid fa-utensils"></i> Catálogo</h3>
+            <span class="panel-hint">Filtre por categoria</span>
+          </header>
+
+          <div id="categorias-container" class="chips"></div>
+          <div id="alimentos-lista" class="grid-foods"></div>
+        </article>
+
+        <aside class="panel panel-lunch">
+          <div class="lunchbox-strap" aria-hidden="true">
+            <span class="strap-buckle"></span>
+            <span class="strap-buckle"></span>
+          </div>
+
+          <header class="panel-header lunch-header">
+            <div class="lunch-title">
+              <span class="lunch-emoji" aria-hidden="true">🎒</span>
+              <div>
+                <h3>Minha Lancheira</h3>
+                <small>Equilibre os sabores</small>
+              </div>
             </div>
+            <span class="badge" id="contador-itens">0 itens</span>
+          </header>
 
-            <div id="lancheira-container" class="lancheira-container">
-                <ul id="lancheira"></ul>
+          <div class="progress-block">
+            <div class="progress-info">
+              <span><i class="fa-solid fa-fire"></i> Total de calorias</span>
+              <strong id="total-kcal">0 / 400 kcal</strong>
             </div>
-            
-            <p id="total" class="total"></p>
-            
-            <div class="botoes-acao">
-                <button class="btn-limpar" onclick="limparLancheira()">Limpar Tudo</button>
+            <div class="progress-bar">
+              <div id="progress-fill" class="progress-fill" data-state="low"></div>
             </div>
+            <div class="progress-marks">
+              <span>0</span>
+              <span class="mark-mid">alvo · 300</span>
+              <span>400+</span>
+            </div>
+          </div>
 
-            <p id="mensagem" class="mensagem"></p>
+          <div class="lunch-list-wrap">
+            <ul id="lancheira" class="lunch-list"></ul>
+          </div>
 
-            <button id="voltarpagina" class="btn-voltar">Voltar 🏠</button>
+          <p id="mensagem" class="message neutral">Comece adicionando um item ao lado.</p>
 
-            
-        </section>
-        
-    </div>
+          <div class="panel-actions">
+            <button class="btn-secondary" id="btn-limpar">
+              <i class="fa-solid fa-broom"></i> Limpar
+            </button>
+            <button class="btn-primary btn-block" id="btn-voltar">
+              <i class="fa-solid fa-arrow-left"></i> Voltar ao início
+            </button>
+          </div>
+        </aside>
+      </div>
+    </section>
   </main>
 
-  
+  <footer class="footer">
+    <div class="footer-inner">
+      <div class="brand">
+        <img src="public/images/logotipo.png" alt="">
+        <span>Alimenta<strong>+Ação</strong></span>
+      </div>
+      <p>Projeto Integrador · feito com cuidado para famílias e escolas.</p>
+    </div>
+  </footer>
 
-    <script>
-        const voltarpagina = document.getElementById('voltarpagina');
-
-        voltarpagina.addEventListener('click', () => {
-            window.location.reload();
-        });
-    </script>
-  
   <script type="module" src="./src/script.js"></script>
 </body>
 </html>

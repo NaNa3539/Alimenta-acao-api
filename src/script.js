@@ -1,246 +1,274 @@
-let alimentos = [];
-let lancheira = [];
-const LIMITE_KCAL = 400;
-let categoriaAtual = 'Todos'; 
+const LIMITE = 400;
+const ALVO_MIN = 0.75;
 
-
-const icones = {
-    'Frutas': 'fa-apple-alt',
-    'Vegetais': 'fa-carrot',
-    'Laticínios': 'fa-cheese',
-    'Oleaginosas': 'fa-seedling',
-    'Carboidratos': 'fa-bread-slice',
-    'Proteínas': 'fa-egg',
-    'Todos': 'fa-list-ul'
+const state = {
+  alimentos: [],
+  lancheira: [],
+  categoria: 'Todos',
 };
 
+const icones = {
+  'Todos': 'fa-layer-group',
+  'Frutas': 'fa-apple-whole',
+  'Verduras e Legumes': 'fa-carrot',
+  'Laticínios e Derivados': 'fa-cheese',
+  'Carboidratos e Cereais': 'fa-bread-slice',
+  'Proteínas e Gorduras Saudáveis': 'fa-egg',
+  'Proteínas e Gorduras Ultraprocessadas': 'fa-burger',
+  'Bebidas': 'fa-mug-saucer',
+  'Doces e Outros': 'fa-cookie-bite',
+  'Oleaginosas': 'fa-seedling',
+};
 
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => document.querySelectorAll(sel);
 
-fetch('/api/alimentos')
-    .then(response => {
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        return response.json();
-    })
-    .then(data => {
-        alimentos = data;
-        preencherCategorias();
-        
-        
-        
-    })
-    .catch(error => {
-        console.error('ERRO FATAL: Não foi possível carregar a base de alimentos.', error);
-        const msg = document.getElementById("mensagem");
-        msg.textContent = "❌ Erro ao carregar dados. Verifique a localização do 'alimentos.json'.";
-        msg.className = "mensagem perigo";
+async function carregarAlimentos() {
+  try {
+    const resp = await fetch('/api/alimentos');
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    state.alimentos = await resp.json();
+    renderChips();
+    renderFoods();
+    renderLunch();
+  } catch (err) {
+    const msg = $('#mensagem');
+    if (msg) {
+      msg.textContent = 'Não foi possível carregar os alimentos. Verifique se o servidor está rodando.';
+      msg.className = 'message danger';
+    }
+    console.error('Falha ao carregar alimentos', err);
+  }
+}
+
+function categoriasUnicas() {
+  const ordem = [
+    'Frutas',
+    'Verduras e Legumes',
+    'Laticínios e Derivados',
+    'Carboidratos e Cereais',
+    'Proteínas e Gorduras Saudáveis',
+    'Proteínas e Gorduras Ultraprocessadas',
+    'Oleaginosas',
+    'Bebidas',
+    'Doces e Outros',
+  ];
+  const presentes = new Set(state.alimentos.map((a) => a.categoria));
+  const sorted = ordem.filter((c) => presentes.has(c));
+  for (const extra of presentes) if (!sorted.includes(extra)) sorted.push(extra);
+  return ['Todos', ...sorted];
+}
+
+function renderChips() {
+  const container = $('#categorias-container');
+  if (!container) return;
+  container.innerHTML = '';
+
+  for (const cat of categoriasUnicas()) {
+    const btn = document.createElement('button');
+    btn.className = 'chip' + (cat === state.categoria ? ' chip-active' : '');
+    btn.type = 'button';
+    btn.innerHTML = `
+      <i class="fa-solid ${icones[cat] || 'fa-utensils'}"></i>
+      <span>${cat}</span>
+    `;
+    btn.addEventListener('click', () => {
+      state.categoria = cat;
+      renderChips();
+      renderFoods();
     });
+    container.appendChild(btn);
+  }
+}
 
+function renderFoods() {
+  const list = $('#alimentos-lista');
+  if (!list) return;
+  list.innerHTML = '';
+
+  const itens =
+    state.categoria === 'Todos'
+      ? state.alimentos
+      : state.alimentos.filter((a) => a.categoria === state.categoria);
+
+  if (!itens.length) {
+    list.innerHTML = '<p class="empty">Nenhum alimento nesta categoria.</p>';
+    return;
+  }
+
+  for (const alimento of itens) {
+    const card = document.createElement('button');
+    card.type = 'button';
+    card.className = 'food-card';
+    card.innerHTML = `
+      <span class="food-icon">
+        <i class="fa-solid ${icones[alimento.categoria] || 'fa-utensils'}"></i>
+      </span>
+      <span class="food-info">
+        <span class="food-name">${alimento.nome}</span>
+        <span class="food-cat">${alimento.categoria}</span>
+      </span>
+      <span class="food-kcal">
+        ${alimento.kcal}
+        <small>kcal</small>
+      </span>
+    `;
+    card.addEventListener('click', () => {
+      state.lancheira.push({ ...alimento });
+      renderLunch();
+      card.classList.add('pulse');
+      setTimeout(() => card.classList.remove('pulse'), 400);
+    });
+    list.appendChild(card);
+  }
+}
+
+function renderLunch() {
+  const ul = $('#lancheira');
+  const totalEl = $('#total-kcal');
+  const fill = $('#progress-fill');
+  const msg = $('#mensagem');
+  const count = $('#contador-itens');
+  if (!ul || !totalEl || !fill || !msg || !count) return;
+
+  ul.innerHTML = '';
+  let total = 0;
+
+  state.lancheira.forEach((item, i) => {
+    total += item.kcal;
+    const li = document.createElement('li');
+    li.className = 'lunch-item';
+    li.innerHTML = `
+      <span class="lunch-icon">
+        <i class="fa-solid ${icones[item.categoria] || 'fa-utensils'}"></i>
+      </span>
+      <span class="lunch-info">
+        <strong>${item.nome}</strong>
+        <small>${item.categoria}</small>
+      </span>
+      <span class="lunch-kcal">${item.kcal} kcal</span>
+      <button class="lunch-remove" data-i="${i}" aria-label="Remover item">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    `;
+    ul.appendChild(li);
+  });
+
+  const qtd = state.lancheira.length;
+  count.textContent = `${qtd} ${qtd === 1 ? 'item' : 'itens'}`;
+  totalEl.textContent = `${total} / ${LIMITE} kcal`;
+
+  const pct = Math.min((total / LIMITE) * 100, 100);
+  fill.style.width = pct + '%';
+  fill.dataset.state =
+    total > LIMITE ? 'over' : total >= LIMITE * ALVO_MIN ? 'good' : 'low';
+
+  const ultra = state.lancheira.some(
+    (i) => i.categoria === 'Proteínas e Gorduras Ultraprocessadas'
+  );
+  const aviso = ultra
+    ? ' Contém ultraprocessados — prefira opções naturais.'
+    : '';
+
+  if (!qtd) {
+    msg.textContent = 'Comece adicionando um item ao lado.';
+    msg.className = 'message neutral';
+  } else if (total > LIMITE) {
+    msg.textContent = `Você passou ${total - LIMITE} kcal do limite. Tente trocar por algo mais leve.${aviso}`;
+    msg.className = 'message danger';
+  } else if (total >= LIMITE * ALVO_MIN) {
+    msg.textContent = `Equilíbrio perfeito — você está no alvo.${aviso}`;
+    msg.className = 'message success';
+  } else {
+    msg.textContent = `Boa escolha. Faltam ${LIMITE - total} kcal para o alvo.${aviso}`;
+    msg.className = 'message warn';
+  }
+
+  ul.querySelectorAll('.lunch-remove').forEach((btn) => {
+    btn.addEventListener('click', () => {
+      const i = parseInt(btn.dataset.i, 10);
+      state.lancheira.splice(i, 1);
+      renderLunch();
+    });
+  });
+}
 
 function iniciarMontagem() {
-    const landingSection = document.getElementById('landing-section');
-    const mainContent = document.getElementById('main-content');
-    const cabecalhoH1 = document.querySelector('.cabecalho h1');
-    const logotipo = document.querySelector('.logotipo');
+  const hero = $('#hero');
+  const info = $('#sobre');
+  const steps = $('#como');
+  const app = $('#app');
+  if (!app) return;
 
-    
-    cabecalhoH1.style.fontSize = '2rem';
-    logotipo.style.width = '120px';
+  [hero, info, steps].forEach((s) => s && s.classList.add('fade-out'));
 
-    
-    
-    landingSection.style.opacity = '0';
-    landingSection.style.maxHeight = '0';
-    landingSection.style.marginBottom = '0';
-    landingSection.style.padding = '0';
-    landingSection.style.overflow = 'hidden';
+  setTimeout(() => {
+    [hero, info, steps].forEach((s) => {
+      if (s) s.classList.add('off');
+    });
+    app.classList.remove('hidden');
+    requestAnimationFrame(() => app.classList.add('show'));
+    app.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 350);
+}
 
+function voltarInicio() {
+  const hero = $('#hero');
+  const info = $('#sobre');
+  const steps = $('#como');
+  const app = $('#app');
 
-    
+  app?.classList.remove('show');
+  setTimeout(() => {
+    app?.classList.add('hidden');
+    [hero, info, steps].forEach((s) => {
+      if (!s) return;
+      s.classList.remove('off');
+      requestAnimationFrame(() => s.classList.remove('fade-out'));
+    });
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, 300);
+}
+
+function navegarPara(id) {
+  const alvo = document.getElementById(id);
+  if (!alvo) return;
+  if (alvo.classList.contains('off')) {
+    voltarInicio();
     setTimeout(() => {
-        
-        mainContent.classList.remove('hidden'); 
-        
-        mainContent.classList.add('full-width'); 
-
-        
-        window.scrollTo({
-            top: mainContent.offsetTop - 50, 
-            behavior: 'smooth'
-        });
-        
-        
-        setTimeout(() => {
-             landingSection.style.display = 'none';
-             preencherListaAlimentos(categoriaAtual); 
-             atualizarLancheira(); 
-        }, 500); 
-       
-
-    }, 100); 
-}
-
-
-
-
-function preencherCategorias() {
-    const container = document.getElementById("categorias-container");
-    container.innerHTML = "";
-
-    const categoriasUnicas = ['Todos', ...new Set(alimentos.map(item => item.categoria))];
-
-    categoriasUnicas.forEach(categoria => {
-        const button = document.createElement("button");
-        button.className = 'btn-categoria';
-        button.textContent = categoria;
-        
-        const icon = document.createElement("i");
-        icon.className = `fas ${icones[categoria] || 'fa-utensils'}`;
-        button.prepend(icon);
-
-        button.onclick = () => {
-            filtrarPorCategoria(categoria);
-        };
-        
-        container.appendChild(button);
-    });
-
-    
-    filtrarPorCategoria('Todos');
-}
-
-function filtrarPorCategoria(categoria) {
-    categoriaAtual = categoria;
-    
-    document.querySelectorAll('.btn-categoria').forEach(btn => {
-        if (btn.textContent.trim() === categoria) {
-            btn.classList.add('active');
-        } else {
-            btn.classList.remove('active');
-        }
-    });
-
-    preencherListaAlimentos(categoria);
-}
-
-function preencherListaAlimentos(categoria) {
-    const listaAlimentosDiv = document.getElementById("alimentos-lista");
-    listaAlimentosDiv.innerHTML = "";
-
-    let alimentosFiltrados = alimentos;
-    if (categoria !== 'Todos') {
-        alimentosFiltrados = alimentos.filter(item => item.categoria === categoria);
-    }
-
-    if (alimentosFiltrados.length === 0) {
-        listaAlimentosDiv.innerHTML = '<p style="text-align: center; color: #777;">Nenhum alimento nesta categoria.</p>';
-        return;
-    }
-
-    alimentosFiltrados.forEach((alimento) => {
-        const itemDiv = document.createElement("div");
-        itemDiv.className = 'item-alimento';
-
-        const indexOriginal = alimentos.findIndex(a => a.nome === alimento.nome && a.kcal === alimento.kcal);
-        
-        itemDiv.innerHTML = `
-            <span>${alimento.nome}</span>
-            <span class="kcal">${alimento.kcal} kcal</span>
-        `;
-        
-        itemDiv.onclick = () => adicionarAlimento(indexOriginal);
-        
-        listaAlimentosDiv.appendChild(itemDiv);
-    });
-}
-
-function adicionarAlimento(index) {
-    if (index === undefined || index === -1) return;
-    
-    lancheira.push({...alimentos[index]});
-    atualizarLancheira();
+      alvo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 450);
+  } else {
+    alvo.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 }
 
 function limparLancheira() {
-    if (confirm("Tem certeza que deseja limpar toda a sua lancheira?")) {
-        lancheira = [];
-        atualizarLancheira();
-    }
+  if (!state.lancheira.length) return;
+  const ok = window.confirm('Deseja remover todos os itens da lancheira?');
+  if (!ok) return;
+  state.lancheira = [];
+  renderLunch();
 }
 
-function removerAlimento(index) {
-    lancheira.splice(index, 1);
-    atualizarLancheira();
-}
+document.addEventListener('DOMContentLoaded', () => {
+  carregarAlimentos();
 
+  $('#btn-iniciar')?.addEventListener('click', iniciarMontagem);
+  $('#nav-cta')?.addEventListener('click', (e) => {
+    e.preventDefault();
+    iniciarMontagem();
+  });
+  $('#btn-voltar')?.addEventListener('click', voltarInicio);
+  $('#btn-limpar')?.addEventListener('click', limparLancheira);
 
-
-function atualizarLancheira() {
-    const lista = document.getElementById("lancheira");
-    const totalElement = document.getElementById("total");
-    const mensagemElement = document.getElementById("mensagem");
-
-    lista.innerHTML = "";
-    let totalKcal = 0;
-    const temUltraprocessado = lancheira.some(item =>
-    item.categoria === 'Proteínas e Gorduras Ultraprocessadas'
-);
-    
-
-    if (lancheira.length === 0) {
-        lista.innerHTML = '<p style="text-align: center; color: #b1b1b1; margin-top: 20px;">Sua lancheira está vazia. Adicione itens!</p>';
-        totalElement.textContent = `Total de Calorias: 0 kcal`;
-        mensagemElement.textContent = "Monte sua lancheira para começar!";
-        mensagemElement.className = "mensagem";
-        totalElement.style.color = '#b1b1b1'; 
-        return;
-    } 
-
-    lancheira.forEach((item, index) => {
-        const li = document.createElement("li");
-        li.innerHTML = `
-            <div class="item-detalhes">
-                <span class="item-nome">${item.nome}</span>
-                <span class="item-kcal">${item.kcal} kcal</span>
-            </div>
-            <button class="remover-item-btn" onclick="removerAlimento(${index})">
-                <i class="fas fa-trash-alt"></i>
-            </button>
-        `;
-        lista.appendChild(li);
-        totalKcal += item.kcal;
+  document.querySelectorAll('a[href^="#"]').forEach((link) => {
+    if (link.id === 'nav-cta') return;
+    link.addEventListener('click', (e) => {
+      const id = link.getAttribute('href').slice(1);
+      if (!id) return;
+      e.preventDefault();
+      navegarPara(id);
     });
-
-    totalElement.textContent = `Total de Calorias: ${totalKcal} kcal`;
-
-    if (totalKcal > LIMITE_KCAL) {
-        mensagemElement.textContent = `⚠️ Você ultrapassou o limite de ${LIMITE_KCAL} kcal por ${totalKcal - LIMITE_KCAL} kcal! Revise suas escolhas.`;
-        mensagemElement.className = "mensagem perigo";
-        totalElement.style.color = '#ef4444'; 
-
-    if (temUltraprocessado) {
-    mensagemElement.textContent += " ⚠️ Contém alimentos ultraprocessados. Prefira opções naturais.";
-}
-    } else if (totalKcal > LIMITE_KCAL * 0.75 && totalKcal <= LIMITE_KCAL) {
-        mensagemElement.textContent = `✅ Você está no alvo de calorias.`;
-        mensagemElement.className = "mensagem sucesso";
-        totalElement.style.color = '#4ade80';
-
-    if (temUltraprocessado) {
-    mensagemElement.textContent += " ⚠️ Contém alimentos ultraprocessados. Prefira opções naturais.";
-}
-    } else {
-        mensagemElement.textContent = `👍 Continue adicionando! Você está com ${totalKcal} kcal.`;
-        mensagemElement.className = "mensagem alerta";
-        totalElement.style.color = '#fde047';
-        
-    if (temUltraprocessado) {
-    mensagemElement.textContent += " ⚠️ Contém alimentos ultraprocessados. Prefira opções naturais.";
-}
-    }
-}
-
-window.iniciarMontagem = iniciarMontagem;
-window.removerAlimento = removerAlimento;
-window.limparLancheira = limparLancheira;
+  });
+});
