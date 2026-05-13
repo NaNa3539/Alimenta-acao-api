@@ -1,11 +1,15 @@
 const express = require('express');
-let db;
-
-if (process.env.NODE_ENV !== 'test') {
-  db = require('./database/db');
-}
 const fs = require('fs');
 const path = require('path');
+
+let db;
+if (process.env.NODE_ENV !== 'test' && process.env.DISABLE_SQLITE !== 'true') {
+  try {
+    db = require('./database/db');
+  } catch (err) {
+    console.warn('SQLite indisponível neste ambiente:', err.message);
+  }
+}
 
 const app = express();
 const port = process.env.PORT || 3000;
