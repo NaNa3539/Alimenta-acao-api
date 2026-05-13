@@ -4,9 +4,13 @@
   "description": "Alimenta + Ação: software de apoio à montagem de lanches saudáveis",
   "main": "src/server.js",
   "scripts": {
+    "start": "node src/server.js",
     "build": "vite build",
     "dev": "vite",
     "test": "jest"
+  },
+  "engines": {
+    "node": ">=18"
   },
   "dependencies": {
     "express": "^4.18.2",
