@@ -1,3 +1,6 @@
+import * as G from './game.js';
+import * as UI from './ui.js';
+
 const LIMITE = 400;
 const ALVO_MIN = 0.75;
 
@@ -5,6 +8,7 @@ const state = {
   alimentos: [],
   lancheira: [],
   categoria: 'Todos',
+  perfil: null,
 };
 
 const icones = {
@@ -20,8 +24,7 @@ const icones = {
   'Oleaginosas': 'fa-seedling',
 };
 
-const $ = (sel) => document.querySelector(sel);
-const $$ = (sel) => document.querySelectorAll(sel);
+const $ = (s) => document.querySelector(s);
 
 async function carregarAlimentos() {
   try {
@@ -129,6 +132,7 @@ function renderLunch() {
   const fill = $('#progress-fill');
   const msg = $('#mensagem');
   const count = $('#contador-itens');
+  const btnSalvarText = $('#btn-salvar-text');
   if (!ul || !totalEl || !fill || !msg || !count) return;
 
   ul.innerHTML = '';
@@ -184,6 +188,12 @@ function renderLunch() {
     msg.className = 'message warn';
   }
 
+  if (btnSalvarText && state.perfil) {
+    btnSalvarText.textContent = G.jaPontuouHoje(state.perfil)
+      ? 'Atualizar lancheira (sem pontos)'
+      : 'Salvar lancheira do dia';
+  }
+
   ul.querySelectorAll('.lunch-remove').forEach((btn) => {
     btn.addEventListener('click', () => {
       const i = parseInt(btn.dataset.i, 10);
@@ -194,6 +204,22 @@ function renderLunch() {
 }
 
 function iniciarMontagem() {
+  if (!state.perfil) {
+    UI.modalOnboarding((p) => {
+      state.perfil = p;
+      atualizarTema();
+      if (!p.tutorialVisto) {
+        UI.modalTutorial(p, () => {
+          state.perfil = G.Store.getAtivo();
+          iniciarMontagem();
+        });
+      } else {
+        iniciarMontagem();
+      }
+    });
+    return;
+  }
+
   const hero = $('#hero');
   const info = $('#sobre');
   const steps = $('#como');
@@ -209,6 +235,11 @@ function iniciarMontagem() {
     app.classList.remove('hidden');
     requestAnimationFrame(() => app.classList.add('show'));
     app.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+    if (G.ehHojeIgual(state.perfil) && state.lancheira.length === 0) {
+      state.lancheira = state.perfil.lancheiraDoDia.itens.map((i) => ({ ...i }));
+      renderLunch();
+    }
   }, 350);
 }
 
@@ -251,8 +282,67 @@ function limparLancheira() {
   renderLunch();
 }
 
-document.addEventListener('DOMContentLoaded', () => {
+function salvarLancheira() {
+  if (!state.perfil) return;
+  if (!state.lancheira.length) {
+    alert('Adicione pelo menos um item antes de salvar.');
+    return;
+  }
+
+  if (G.jaPontuouHoje(state.perfil)) {
+    G.atualizarLancheira(state.perfil, state.lancheira);
+    state.perfil = G.Store.getAtivo();
+    UI.aplicarTema(state.perfil);
+    UI.montarDashboard(state.perfil, dashboardHandlers());
+    alert('Lancheira de hoje atualizada (sem pontos extras).');
+    return;
+  }
+
+  const resultado = G.salvarLancheira(state.perfil, state.lancheira);
+  state.perfil = G.Store.getAtivo();
+  UI.aplicarTema(state.perfil);
+  UI.montarDashboard(state.perfil, dashboardHandlers());
+  UI.modalCelebracao(resultado, state.perfil);
+  renderLunch();
+}
+
+function dashboardHandlers() {
+  return {
+    trocar: () => UI.modalOnboarding((p) => {
+      state.perfil = p;
+      state.lancheira = [];
+      atualizarTema();
+      renderLunch();
+    }),
+    score: () => UI.modalLoja(state.perfil, (p) => {
+      state.perfil = p;
+      atualizarTema();
+    }),
+    streak: () => UI.modalHistorico(state.perfil),
+    loja: () => UI.modalLoja(state.perfil, (p) => {
+      state.perfil = p;
+      atualizarTema();
+    }),
+    historico: () => UI.modalHistorico(state.perfil),
+    ranking: () => UI.modalRanking(state.perfil),
+  };
+}
+
+function atualizarTema() {
+  UI.aplicarTema(state.perfil);
+  UI.montarDashboard(state.perfil, dashboardHandlers());
+}
+
+function bootstrap() {
+  state.perfil = G.Store.getAtivo();
+  if (state.perfil) {
+    atualizarTema();
+  }
   carregarAlimentos();
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  bootstrap();
 
   $('#btn-iniciar')?.addEventListener('click', iniciarMontagem);
   $('#nav-cta')?.addEventListener('click', (e) => {
@@ -261,6 +351,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   $('#btn-voltar')?.addEventListener('click', voltarInicio);
   $('#btn-limpar')?.addEventListener('click', limparLancheira);
+  $('#btn-salvar')?.addEventListener('click', salvarLancheira);
 
   document.querySelectorAll('a[href^="#"]').forEach((link) => {
     if (link.id === 'nav-cta') return;
